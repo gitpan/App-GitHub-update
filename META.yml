@@ -1,5 +1,5 @@
 ---
-abstract: 'Update a github repository (description, etc.) from the command-line'
+abstract: 'Update a github repository (description, homepage, etc.) from the commandline'
 author:
   - 'Robert Krimen <robertkrimen@gmail.com>'
 build_requires:
@@ -17,4 +17,4 @@ requires:
   Config::Identity: 0
   Getopt::Long: 0
   LWP::UserAgent: 0
-version: 0.0010
+version: 0.0011

@@ -5,3 +5,4 @@ Makefile.PL
 README
 bin/github-update
 lib/App/GitHub/update.pm
+t/01-basic.t

@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.31;
 
 my %WriteMakefileArgs = (
                        'test' => {
-                                   'TESTS' => ''
+                                   'TESTS' => 't/*.t'
                                  },
                        'NAME' => 'App::GitHub::update',
                        'DISTNAME' => 'App-GitHub-update',
@@ -21,11 +21,11 @@ my %WriteMakefileArgs = (
                        'BUILD_REQUIRES' => {
                                              'Test::Most' => '0'
                                            },
-                       'ABSTRACT' => 'Update a github repository (description, etc.) from the command-line',
+                       'ABSTRACT' => 'Update a github repository (description, homepage, etc.) from the commandline',
                        'EXE_FILES' => [
                                         'bin/github-update'
                                       ],
-                       'VERSION' => '0.0010',
+                       'VERSION' => '0.0011',
                        'PREREQ_PM' => {
                                         'Getopt::Long' => '0',
                                         'LWP::UserAgent' => '0',

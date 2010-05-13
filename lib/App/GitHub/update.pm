@@ -1,8 +1,8 @@
 package App::GitHub::update;
 BEGIN {
-  $App::GitHub::update::VERSION = '0.0010';
+  $App::GitHub::update::VERSION = '0.0011';
 }
-# ABSTRACT: Update a github repository (description, etc.) from the command-line
+# ABSTRACT: Update a github repository (description, homepage, etc.) from the commandline
 
 
 use strict;
@@ -36,8 +36,7 @@ sub update {
         [ login => $login, token => $token, @arguments ] );
 
     unless ( $response->is_success ) {
-        carp $response->status_line;
-        croak $response->decoded_content
+        die $response->status_line, "\n", $response->decoded_content, "\n";
     }
 
     return $response;
@@ -45,27 +44,43 @@ sub update {
 
 sub usage (;$) {
     my $error = shift;
-    do { chomp $error; warn $error, "\n" } if $error;
+    my $exit = 0;
+    if ( defined $error ) {
+        if ( $error ) {
+            if ( $error =~ m/^\-?\d+$/ ) { $exit = $error }
+            else {
+                chomp $error;
+                warn $error, "\n";
+                $exit = -1;
+            }
+        }
+    }
     warn <<_END_;
 
-Usage: github-update [opt] <description>
+Usage: github-update [opt]
 
     --login ...         Your github login
-
     --token ...         The github token associated with the given login
+
+                        Although required, if a login/token are not given,
+                        github-create will attempt to load it from 
+                        \$HOME/.github or \$HOME/.github-identity (see
+                        Config::Identity for more information)
 
     --repository ...    The repository to update
 
-    --dzpl              Guess repository and description from Dist::Dzpl
-                        configuration (name and abstract, respectively)
+    --description ...   The new description of the repository
+    --homepage ...      A homepage for the repository
 
     --help, -h, -?      This help
 
-    <description>       The new description for the repository
 
 _END_
 
-    exit -1 if $error;
+#    --dzpl              Guess repository and description from Dist::Dzpl
+#                        configuration (name and abstract, respectively)
+
+    exit $exit;
 }
 
 sub guess_dzpl {
@@ -76,7 +91,7 @@ sub guess_dzpl {
         # Oh god this is hacky
         package App::GitHub::update::Sandbox;
 BEGIN {
-  $App::GitHub::update::Sandbox::VERSION = '0.0010';
+  $App::GitHub::update::Sandbox::VERSION = '0.0011';
 }
         local @ARGV;
         do './dzpl';
@@ -96,15 +111,19 @@ sub run {
     my $self = shift;
     my @arguments = @_;
 
+    usage 0 unless @arguments;
+
     my ( $login, $token, $repository, $dzpl, $help );
     my ( $homepage, $description );
     {
         local @ARGV = @arguments;
         GetOptions(
             'help|h|?' => \$help,
+
             'login=s' => \$login,
             'token=s' => \$token,
             'repository=s' => \$repository,
+
             'dzpl' => \$dzpl,
 
             'description=s' => \$description,
@@ -112,10 +131,7 @@ sub run {
         );
     }
 
-    if ($help) {
-        usage;
-        exit 0;
-    }
+    usage 0 if $help;
 
     if ( $dzpl ) {
         my %guess = $self->guess_dzpl;
@@ -145,11 +161,11 @@ __END__
 
 =head1 NAME
 
-App::GitHub::update - Update a github repository (description, etc.) from the command-line
+App::GitHub::update - Update a github repository (description, homepage, etc.) from the commandline
 
 =head1 VERSION
 
-version 0.0010
+version 0.0011
 
 =head1 SYNOPSIS
 
@@ -158,6 +174,12 @@ version 0.0010
 
     # Pulling login and token from $HOME/.github
     github-update --repository example --description "Xyzzy"
+
+    # With homepage
+    github-update --repository example --description "The incredible Xyzzy" --homepage http://example/xyzzy
+
+    # Print usage
+    github-update --help
 
 =head1 DESCRIPTION
 
@@ -168,7 +190,13 @@ A simple tool for setting the description and homepage of a github repository
     login <login>
     token <token>
 
-Optionally GnuPG encrypted
+(Optionally GnuPG encrypted; see L<Config::Identity>)
+
+=head1 SEE ALSO
+
+L<App::GitHub::create>
+
+L<Config::Identity>
 
 =head1 AUTHOR
 
